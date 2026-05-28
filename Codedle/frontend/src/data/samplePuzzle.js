@@ -1,0 +1,76 @@
+export const samplePuzzle = {
+  id: "puzzle_001",
+  scheduledDate: "2026-05-27",
+  answer: "Abraham Lincoln",
+  pattern: [7, 7],
+  display: "_______ ________",
+  hints: [
+    "President of the United States",
+    "Second word starts with L",
+    "Issued the Emancipation Proclamation",
+    "Assassinated in a theatre",
+    "The 16th president",
+  ],
+  challenges: [
+    {
+      type: "output_prediction",
+      language: "python",
+      title: "Warm-up output prediction",
+      prompt: "What does this print?",
+      code: "x = [1, 2, 3]\nprint(x[-1] + x[0])",
+      answer: "4",
+    },
+    {
+      type: "fill_blank",
+      language: "python",
+      title: "Fill the missing slice",
+      prompt: "Complete the missing return line.",
+      code: "def reverse_string(value):\n    return ______",
+      answer: "value[::-1]",
+      test_cases: [{ input: "hello", expected: "olleh" }],
+    },
+    {
+      type: "bug_fix",
+      language: "python",
+      title: "Fix the off-by-one bug",
+      prompt: "Correct the broken line only.",
+      code: "def next_score(value):\n    return value - 1",
+      answer: "return value + 1",
+      test_cases: [{ input: 4, expected: 5 }],
+    },
+    {
+      type: "reorder_lines",
+      language: "python",
+      title: "Reorder the helper",
+      prompt: "Put the lines back in the right order.",
+      lines: [
+        "def greet(name):",
+        "    message = f\"Hello, {name}!\"",
+        "    return message",
+      ],
+      answer: [
+        "def greet(name):",
+        "    message = f\"Hello, {name}!\"",
+        "    return message",
+      ],
+    },
+    {
+      type: "combo",
+      language: "python",
+      title: "Fix and complete",
+      prompt: "One line is wrong, one line is missing.",
+      code: "def double_then_add_one(value):\n    result = value * 2\n    return ______",
+      answer: "result + 1",
+      test_cases: [{ input: 3, expected: 7 }],
+    },
+  ],
+  roasts: [
+    "That attempt had the structural integrity of wet cardboard.",
+    "The compiler would like a private apology.",
+    "A syntax error just filed a complaint.",
+    "Your logic took a very scenic route.",
+    "This one was brave, but not correct.",
+  ],
+};
+
+export default samplePuzzle;

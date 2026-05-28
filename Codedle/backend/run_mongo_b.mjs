@@ -1,0 +1,1 @@
+await import(new URL("./db/run_mongo_b.mjs", import.meta.url));
