@@ -7,12 +7,12 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
+from pymongo.errors import DuplicateKeyError
+
+from ..db import ensure_user_indexes, get_users_collection
 
 router = APIRouter(tags=["auth"])
 
-_users_by_id: dict[str, dict] = {}
-_users_by_email: dict[str, str] = {}
-_users_by_username: dict[str, str] = {}
 _tokens: dict[str, str] = {}
 
 
@@ -38,7 +38,7 @@ def _hash_password(password: str) -> str:
 
 def _serialize_user(user: dict) -> dict:
     return {
-        "id": user["id"],
+        "id": user["_id"],
         "username": user["username"],
         "email": user["email"],
         "created_at": user["created_at"],
@@ -64,7 +64,8 @@ def _get_user_from_token(authorization: Optional[str]) -> dict:
     if not user_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
-    user = _users_by_id.get(user_id)
+    users_collection = get_users_collection()
+    user = users_collection.find_one({"_id": user_id})
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
@@ -73,31 +74,41 @@ def _get_user_from_token(authorization: Optional[str]) -> dict:
 
 @router.post("/auth/register")
 def register_user(payload: RegisterPayload):
+    users_collection = get_users_collection()
+    ensure_user_indexes()
+
     email_key = _normalize_email(payload.email)
     username_key = payload.username.strip().lower()
 
-    if email_key in _users_by_email:
+    if users_collection.find_one({"email": email_key}):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already in use")
 
-    if username_key in _users_by_username:
+    if users_collection.find_one({"username_lower": username_key}):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already in use")
 
     user_id = str(uuid4())
     user = {
-        "id": user_id,
+        "_id": user_id,
         "username": payload.username.strip(),
+        "username_lower": username_key,
         "email": email_key,
         "password_hash": _hash_password(payload.password),
-        "created_at": datetime.utcnow().isoformat() + "Z",
+        "created_at": datetime.utcnow(),
         "streak_current": 0,
         "streak_best": 0,
         "streak_freeze": 0,
         "last_played_date": None,
     }
 
-    _users_by_id[user_id] = user
-    _users_by_email[email_key] = user_id
-    _users_by_username[username_key] = user_id
+    try:
+        users_collection.insert_one(user)
+    except DuplicateKeyError as error:
+        error_message = str(error)
+        if "email" in error_message:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already in use")
+        if "username" in error_message:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already in use")
+        raise
 
     token = _issue_token(user_id)
     return {"token": token, "user": _serialize_user(user)}
@@ -105,17 +116,17 @@ def register_user(payload: RegisterPayload):
 
 @router.post("/auth/login")
 def login_user(payload: AuthPayload):
+    users_collection = get_users_collection()
     email_key = _normalize_email(payload.email)
-    user_id = _users_by_email.get(email_key)
 
-    if not user_id:
+    user = users_collection.find_one({"email": email_key})
+    if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
-    user = _users_by_id[user_id]
     if user["password_hash"] != _hash_password(payload.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
-    token = _issue_token(user_id)
+    token = _issue_token(user["_id"])
     return {"token": token, "user": _serialize_user(user)}
 
 

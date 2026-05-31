@@ -227,6 +227,11 @@
     "results",
     [
       {
+        $addFields: {
+          rank_key: [{ $multiply: [-1, "$score"] }, "$time_taken_secs"],
+        },
+      },
+      {
         $lookup: {
           from: "users",
           localField: "user_id",
@@ -238,11 +243,14 @@
       {
         $setWindowFields: {
           partitionBy: "$puzzle_id",
-          sortBy: { score: -1, time_taken_secs: 1 },
+          sortBy: { rank_key: 1 },
           output: {
             rank: { $rank: {} },
           },
         },
+      },
+      {
+        $sort: { score: -1, time_taken_secs: 1 },
       },
       {
         $project: {
