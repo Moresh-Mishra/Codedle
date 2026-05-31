@@ -40,7 +40,7 @@ pip install fastapi "uvicorn[standard]"
 uvicorn server.main:app --reload --reload-dir server --reload-exclude .venv
 ```
 
-Open http://127.0.0.1:8000/api/health to verify it is running.
+Open http://127.0.0.1:8001/api/health to verify it is running.
 
 ---
 
