@@ -2,7 +2,23 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext(null);
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8001/api";
+
+function normalizeApiBaseUrl(rawUrl) {
+  const fallbackUrl = "http://127.0.0.1:8001/api";
+
+  if (!rawUrl) {
+    return fallbackUrl;
+  }
+
+  const trimmedUrl = rawUrl.trim().replace(/\/$/, "");
+  if (trimmedUrl.endsWith("/api")) {
+    return trimmedUrl;
+  }
+
+  return `${trimmedUrl}/api`;
+}
+
+const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL);
 
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
