@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../AuthProvider.jsx";
+import { FadeIn } from "../components/ui/FadeIn.jsx";
+import { Button } from "../components/ui/Button.jsx";
+import { Input } from "../components/ui/Input.jsx";
+import { Card } from "../components/ui/Card.jsx";
+import { Badge } from "../components/ui/Badge.jsx";
+import { Lock, Mail, User, ChevronRight, Terminal } from "lucide-react";
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -11,6 +17,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const wires = useMemo(
     () =>
       Array.from({ length: 12 }, () => ({
@@ -39,7 +46,7 @@ export default function AuthPage() {
   }, [isAuthenticated, isLoading, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 overflow-x-hidden bg-surface">
+    <div className="min-h-screen flex items-center justify-center p-4 overflow-x-hidden bg-background">
       <div className="pipeline-bg" aria-hidden="true">
         {wires.map((wire, index) => (
           <div
@@ -56,30 +63,31 @@ export default function AuthPage() {
         {pipes.map((left, index) => (
           <div
             key={`pipe-${index}`}
-            className="absolute w-[1px] h-full opacity-[0.05] bg-secondary"
+            className="absolute w-[1px] h-full opacity-[0.05] bg-primary"
             style={{ left: `${left}%` }}
           />
         ))}
       </div>
       <main className="w-full max-w-[440px] z-10">
-        <header className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-primary-container rounded-xl flex items-center justify-center mb-4 shadow-sm border border-outline-variant">
-            <span className="material-symbols-outlined text-on-primary-container text-4xl">
-              terminal
-            </span>
-          </div>
-          <h1 className="font-headline-xl text-headline-xl text-primary tracking-tight">
-            Codedle
-          </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-1 opacity-70">
-            The Debugger's Sanctuary
-          </p>
-        </header>
-        <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-[0px_4px_20px_rgba(22,101,52,0.04)] overflow-hidden">
-          <div className="flex border-b border-outline-variant">
+        <FadeIn direction="down">
+          <header className="flex flex-col items-center mb-8">
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-primary/20 group hover:scale-105 transition-transform">
+              <Terminal className="text-primary" size={32} />
+            </div>
+            <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight">
+              Codedle
+            </h1>
+            <p className="font-body-md text-body-md text-secondary mt-1 opacity-80">
+              The Debugger's Sanctuary
+            </p>
+          </header>
+        </FadeIn>
+
+        <Card title={tab === "login" ? "System Access" : "Initialize Account"}>
+          <div className="flex p-1 bg-surface-muted rounded-lg mb-8">
             <button
-              className={`flex-1 py-4 font-label-md text-label-md transition-all duration-300 ${
-                tab === "login" ? "tab-active" : "tab-inactive"
+              className={`flex-1 py-2 rounded-md font-label-sm text-label-sm transition-all duration-200 ${
+                tab === "login" ? "bg-surface-paper text-primary shadow-sm" : "text-secondary hover:text-on-surface"
               }`}
               onClick={() => setSearchParams({ tab: "login" })}
               type="button"
@@ -87,8 +95,8 @@ export default function AuthPage() {
               Login
             </button>
             <button
-              className={`flex-1 py-4 font-label-md text-label-md transition-all duration-300 ${
-                tab === "signup" ? "tab-active" : "tab-inactive"
+              className={`flex-1 py-2 rounded-md font-label-sm text-label-sm transition-all duration-200 ${
+                tab === "signup" ? "bg-surface-paper text-primary shadow-sm" : "text-secondary hover:text-on-surface"
               }`}
               onClick={() => setSearchParams({ tab: "signup" })}
               type="button"
@@ -96,160 +104,132 @@ export default function AuthPage() {
               Create Account
             </button>
           </div>
-          <div className="p-8">
-            <form
-              className="space-y-6"
-              onSubmit={async (event) => {
-                event.preventDefault();
-                setError("");
-                setIsSubmitting(true);
 
-                try {
-                  if (tab === "signup") {
-                    await signup({ username, email, password });
-                  } else {
-                    await login({ email, password });
-                  }
-                } catch (submitError) {
-                  setError(submitError.message || "Authentication failed");
-                } finally {
-                  setIsSubmitting(false);
+          <form
+            className="space-y-5"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              setError("");
+              setIsSubmitting(true);
+
+              try {
+                if (tab === "signup") {
+                  await signup({ username, email, password });
+                } else {
+                  await login({ email, password });
                 }
-              }}
-            >
-              {tab === "signup" ? (
-                <div className="space-y-2">
-                  <label
-                    className="font-label-sm text-label-sm text-on-surface-variant block uppercase tracking-wider"
-                    htmlFor="username"
-                  >
-                    Username
-                  </label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">
-                      badge
-                    </span>
-                    <input
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none"
-                      id="username"
-                      placeholder="system_user"
-                      value={username}
-                      onChange={(event) => setUsername(event.target.value)}
-                      type="text"
-                    />
-                  </div>
-                </div>
-              ) : null}
+              } catch (submitError) {
+                setError(submitError.message || "Authentication failed");
+              } finally {
+                setIsSubmitting(false);
+              }
+            }}
+          >
+            {tab === "signup" && (
               <div className="space-y-2">
-                <label
-                  className="font-label-sm text-label-sm text-on-surface-variant block uppercase tracking-wider"
-                  htmlFor="email"
-                >
-                  System Email
+                <label htmlFor="username" className="font-label-sm text-label-sm text-secondary uppercase tracking-wider block">
+                  Username
                 </label>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">
-                    alternate_email
-                  </span>
-                  <input
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none"
-                    id="email"
-                    placeholder="user@codedle.io"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    type="email"
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/50" size={18} />
+                  <Input
+                    className="pl-10"
+                    id="username"
+                    placeholder="system_user"
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    type="text"
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label
-                    className="font-label-sm text-label-sm text-on-surface-variant block uppercase tracking-wider"
-                    htmlFor="password"
-                  >
-                    Access Token
-                  </label>
-                  <a
-                    className="text-[10px] font-label-sm text-primary uppercase hover:underline"
-                    href="#"
-                  >
-                    Reset?
-                  </a>
-                </div>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">
-                    lock
-                  </span>
-                  <input
-                    className="w-full pl-10 pr-12 py-3 bg-white border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none"
-                    id="password"
-                    placeholder="********"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    type="password"
-                  />
-                  <button
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors"
-                    type="button"
-                  >
-                    <span className="material-symbols-outlined text-xl">visibility</span>
-                  </button>
-                </div>
+            )}
+
+            <div className="space-y-2">
+              <label htmlFor="email" className="font-label-sm text-label-sm text-secondary uppercase tracking-wider block">
+                System Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/50" size={18} />
+                <Input
+                  className="pl-10"
+                  id="email"
+                  placeholder="user@codedle.io"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  type="email"
+                />
               </div>
-              <button
-                className="w-full bg-primary-container text-on-primary-container font-label-md text-label-md py-4 rounded-lg hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                disabled={isSubmitting}
-                type="submit"
-              >
-                <span>{isSubmitting ? "Working..." : tab === "login" ? "Execute Login" : "Initialize Account"}</span>
-                <span className="material-symbols-outlined text-lg">chevron_right</span>
-              </button>
-              {error ? <p className="text-sm text-error font-medium">{error}</p> : null}
-              <div className="relative flex items-center py-2">
-                <div className="flex-grow border-t border-outline-variant"></div>
-                <span className="flex-shrink mx-4 font-label-sm text-label-sm text-outline uppercase">
-                  Integrated Ops
-                </span>
-                <div className="flex-grow border-t border-outline-variant"></div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label htmlFor="password" className="font-label-sm text-label-sm text-secondary uppercase tracking-wider block">
+                  Access Token
+                </label>
+                <a className="text-[10px] font-label-sm text-primary uppercase hover:underline" href="#">
+                  Reset?
+                </a>
               </div>
-              <button
-                className="w-full bg-surface-container-low border border-outline-variant text-on-surface font-label-md text-label-md py-3 rounded-lg hover:bg-surface-container-high active:scale-[0.98] transition-all flex items-center justify-center gap-3"
-                type="button"
-              >
-                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
-                </svg>
-                <span>Login with GitHub</span>
-              </button>
-            </form>
-          </div>
-          <footer className="bg-surface-container px-8 py-4 flex items-center justify-between border-t border-outline-variant">
-            <div className="flex items-center gap-1.5 text-on-surface-variant">
-              <span className="material-symbols-outlined text-sm">verified_user</span>
-              <span className="font-label-sm text-label-sm">E2E Encrypted</span>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/50" size={18} />
+                <Input
+                  className="pl-10 pr-10"
+                  id="password"
+                  placeholder="********"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  type="password"
+                />
+              </div>
             </div>
-            <div className="flex gap-4">
-              <a
-                className="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors"
-                href="#"
-              >
-                Privacy
-              </a>
-              <a
-                className="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors"
-                href="#"
-              >
-                Terms
-              </a>
+
+            <Button
+              className="w-full py-4"
+              disabled={isSubmitting}
+              type="submit"
+            >
+              <span>{isSubmitting ? "Working..." : tab === "login" ? "Execute Login" : "Initialize Account"}</span>
+              <ChevronRight size={18} />
+            </Button>
+
+            {error && (
+              <div className="p-3 rounded-lg bg-error/10 border border-error/20 text-error text-sm font-medium text-center">
+                {error}
+              </div>
+            )}
+
+            <div className="relative flex items-center py-4">
+              <div className="flex-grow border-t border-surface-outline"></div>
+              <span className="flex-shrink mx-4 font-label-sm text-label-sm text-secondary uppercase">
+                Integrated Ops
+              </span>
+              <div className="flex-grow border-t border-surface-outline"></div>
             </div>
-          </footer>
-        </div>
-        <div className="mt-8 flex justify-center items-center gap-4 text-outline font-label-sm text-label-sm uppercase tracking-widest opacity-60">
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+
+            <Button
+              variant="outline"
+              className="w-full py-4 flex items-center justify-center gap-2"
+              type="button"
+            >
+              <svg
+                height="18"
+                width="18"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+              >
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+              </svg>
+              <span>Login with GitHub</span>
+            </Button>
+          </form>
+        </Card>
+
+        <div className="mt-8 flex justify-center items-center gap-4 text-secondary font-label-sm text-label-sm uppercase tracking-widest opacity-60">
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
             API ONLINE
           </span>
-          <span className="h-1 w-1 bg-outline-variant rounded-full"></span>
+          <span className="h-1 w-1 bg-surface-outline rounded-full"></span>
           <span>VER 2.4.0-STABLE</span>
         </div>
       </main>

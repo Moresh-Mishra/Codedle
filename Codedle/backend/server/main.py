@@ -1,9 +1,16 @@
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import auth, game, health
+try:
+    from routes import auth, game, health
+except ImportError:
+    from .routes import auth, game, health
 
 app = FastAPI(title="Codedle API", version="0.1.0")
 
@@ -30,3 +37,8 @@ app.add_middleware(
 app.include_router(health.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(game.router, prefix="/api")
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("main:app", host="127.0.0.1", port=port, reload=True)

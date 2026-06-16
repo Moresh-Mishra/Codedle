@@ -9,7 +9,10 @@ from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel, Field
 from pymongo.errors import DuplicateKeyError
 
-from ..db import ensure_user_indexes, get_users_collection
+try:
+    from db import ensure_user_indexes, get_users_collection
+except ImportError:
+    from ..db import ensure_user_indexes, get_users_collection
 
 router = APIRouter(tags=["auth"])
 
